@@ -33,9 +33,13 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   static const platform = MethodChannel('samples.flutter.dev/bluetooth');
   String _bluetoothStatus = 'Unknown Bluetooth status.';
-  List<String> _availableDevices = [];
-  String _selectedDevice = '';
+  List<Map<String,String?>> _availableDevices = [];
+  Map<String,String?> _selectedDevice = {};
   bool _loading = false;
+  Map<String,String> device ={};
+  // Map<String, String> stringMap = originalMap.map((key, value) {
+  //   return MapEntry(key.toString(), value.toString());
+  // });
 
   Future<void> _enableBluetooth() async {
     String status;
@@ -56,19 +60,24 @@ class _MyHomePageState extends State<MyHomePage> {
       _loading = true;
     });
 
-    List<String> devices;
+    List<Map<String,String?>> devices =[];
     try {
       var result = await platform.invokeMethod('getAvailableDevices');
-      print("result:-$result");
-      print("resultt:-${result["address"]}");
-      _selectedDevice = result["address"];
+      device["name"]=result!["name"].toString();
+      device["address"]=result["address"].toString();
+      // {"name":result?["name"].toString(),"address":result?["address"].toString()};
+      print("result:-$device");
+      devices.add(device);
+      print("resultt:-${device["address"]}");
+      // _selectedDevice = result["address"];
       // devices = result.cast<String>().;
     } on PlatformException catch (e) {
-      devices = ["Failed to get available devices: '${e.message}'."];
+      rethrow;
+      // devices = ["Failed to get available devices: '${e.message}'."];
     }
 
     setState(() {
-      // _availableDevices = devices;
+      _availableDevices = devices;
       _loading = false;
     });
   }
@@ -99,9 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _connect(String deviceName) async {
+  Future<void> _connect(Map<String,String?> deviceName) async {
     try {
-      await platform.invokeMethod('connect', {'deviceName': deviceName});
+      await platform.invokeMethod('connect',deviceName);
     } on PlatformException catch (e) {
       print("Failed to connect to device: '${e.message}'.");
     }
@@ -145,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   : Column(
                 children: _availableDevices
                     .map((device) => ListTile(
-                  title: Text(device),
+                  title: Text(device["name"] as String),
                   onTap: () {
                     setState(() {
                       _selectedDevice = device;

@@ -37,9 +37,8 @@ import UIKit
             case "makeDeviceDiscoverable":
                 self.makeDeviceDiscoverable(result: result)
             case "connect":
-                if let args = call.arguments as? [String: Any],
-                   let deviceName = args["deviceName"] as? String {
-                    self.connect(deviceName: deviceName, result: result)
+                if let args = call.arguments as? [String: Any]{
+                    self.connect(deviceData: args, result: result)
                 } else {
                     result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
                 }
@@ -132,19 +131,14 @@ import UIKit
         result(nil)
     }
     
-    private func connect(deviceName: String, result: @escaping FlutterResult) {
-//        intractor.connectToDevice(deviceData: deviceName)
-        //        guard let peripheral = discoveredDevices.first(where: { $0.name == deviceName }) else {
-        //            result(FlutterError(code: "DEVICE_NOT_FOUND", message: "Device not found", details: nil))
-        //            return
-        //        }
-        //
-        //        centralManager.connect(peripheral, options: nil)
-        //        flutterResult = result
+    private func connect(deviceData: [String:Any], result: @escaping FlutterResult) {
+//        let deviceData: [String,String] = ["address":deviceName];
+    let result =    intractor.connectToDevice(deviceData:deviceData)
+       
     }
     
     private func setPower(result:String){
-        //        intractor.setPowerLevel(powerLevel: result, completion: <#T##(Result<Bool, Error>) -> Void#>)
+                intractor.setPowerLevel(powerLevel: result, completion: <#T##(Result<Bool, Error>) -> Void#>)
     }
 }
 

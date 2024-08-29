@@ -8,7 +8,6 @@ import UIKit
     private var centralManager: CBCentralManager!
     private var discoveredDevices: [CBPeripheral] = []
     private var flutterResult: FlutterResult?
-    
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -32,13 +31,16 @@ import UIKit
                         result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
                     }
                 }
-            case "startBluetoothDiscovery":
-                self.startBluetoothDiscovery(result: result)
-            case "makeDeviceDiscoverable":
-                self.makeDeviceDiscoverable(result: result)
+            case "getPower":
+                self.getPower(completion: result)
+            case "setPower":
+                if let args = call.arguments as? [String: Int], let power = args["powerLevel"] {
+                    self.setPower(power: power, completion: result)
+                }
+                
             case "connect":
                 if let args = call.arguments as? [String: Any]{
-                    self.connect(deviceData: args, result: result)
+                    self.connect(deviceData: args, completion: result)
                 } else {
                     result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
                 }
@@ -78,30 +80,30 @@ import UIKit
         window?.rootViewController?.present(alertController, animated: true, completion: nil)
     }
     
-//    private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
-//        intractor.startBLEScan()
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0){ [weak self] in
-//            self?.intractor.getDiscoveredPeripherals { result in
-//                switch result {
-//                case .success(let models):
-//                    if let firstModel = models.first,
-//                       let name = firstModel["name"] as? String,
-//                       let address = firstModel["address"] as? String{
-//                        let resultDict: [String?: String?] = [
-//                            "name": name,
-//                            "address": address
-//                        ]
-//                        completion(.success(resultDict))
-//                    } else {
-//                        completion(.failure(NSError(domain: "com.example.Bluetooth", code: 404, userInfo: [NSLocalizedDescriptionKey: "No peripherals found"])))
-//                    }
-//                    
-//                case .failure(let error):
-//                    completion(.failure(error))
-//                }
-//            }
-//        }
-//    }
+    //    private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+    //        intractor.startBLEScan()
+    //        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0){ [weak self] in
+    //            self?.intractor.getDiscoveredPeripherals { result in
+    //                switch result {
+    //                case .success(let models):
+    //                    if let firstModel = models.first,
+    //                       let name = firstModel["name"] as? String,
+    //                       let address = firstModel["address"] as? String{
+    //                        let resultDict: [String?: String?] = [
+    //                            "name": name,
+    //                            "address": address
+    //                        ]
+    //                        completion(.success(resultDict))
+    //                    } else {
+    //                        completion(.failure(NSError(domain: "com.example.Bluetooth", code: 404, userInfo: [NSLocalizedDescriptionKey: "No peripherals found"])))
+    //                    }
+    //
+    //                case .failure(let error):
+    //                    completion(.failure(error))
+    //                }
+    //            }
+    //        }
+    //    }
     
     private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         // First, set up the completion handler
@@ -131,34 +133,44 @@ import UIKit
         result(nil)
     }
     
-    private func connect(deviceData: [String:Any], result: @escaping FlutterResult) {
-//        let deviceData: [String,String] = ["address":deviceName];
-    let result =    intractor.connectToDevice(deviceData:deviceData)
-       
+    private func connect(deviceData: [String:Any], completion: @escaping (Result<Bool, Error>) ->Void) {
+        //        let deviceData: [String,String] = ["address":deviceName];
+        let result =  intractor.connectToDevice(deviceData: deviceData) { res in
+            switch res {
+            case .success(let connected):
+                completion(.success(connected))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to connect To device"])
+                completion(.failure(error))
+            }
+        }
     }
     
     private func getPower(completion: @escaping (Result<Int, Error>) -> Void) {
-        intractor.setPowerLevel(powerLevel: result) { res in
+        intractor.getPowerLevel { res in
             switch res {
             case .success(let power):
                 completion(.success(power))
             case.failure:
-                completion(.failure((FlutterError(code: "Failed_get_power", message: "Failed to get power level: \(error.localizedDescription)", details: nil))))
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to get Power"])
+                completion(.failure(error))
             }
         }
     }
     
-    private func setPower(result:String, completion: @escaping (Result<Bool, Error>) -> Void) {
-        intractor.setPowerLevel(powerLevel: result) { res in
+    
+    
+    private func setPower(power:Int, completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.setPowerLevel(powerLevel: power) { res in
             switch res {
             case .success(let isSet):
                 completion(.success(isSet))
             case.failure:
-                completion(.failure((FlutterError(code: "Failed_set_power", message: "Failed to set power level: \(error.localizedDescription)", details: nil))))
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
             }
         }
     }
-}
 }
 
 extension AppDelegate: CBCentralManagerDelegate {

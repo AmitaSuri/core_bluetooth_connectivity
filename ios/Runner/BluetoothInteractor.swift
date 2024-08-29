@@ -22,29 +22,33 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     private var currentPowerLevel: Int?
     private var setPowerLevelSuccess: Bool?
     private var batteryLevel: String?
-    
     weak var managerDelegate: FatScaleBluetoothManager?
-    
     private var peripheralCompletion: ((Result<[String: Any], Error>) -> Void)?
+    private var setPowerLevelCompletion: ((Result<Bool, Error>) -> Void)?
+    private var getPowerLevelCompletion: ((Result<Int, Error>) -> Void)?
+    private var deviceConnectionCompletion: ((Result<Bool, Error>) -> Void)?
     
     override init() {
         super.init()
         RFIDBlutoothManager.share().setFatScaleBluetoothDelegate(self)
     }
     
-    func connectToDevice(deviceData: [String: Any]) -> Bool {
+    func connectToDevice(deviceData: [String: Any], completion: @escaping (Result<Bool, Error>) -> Void) {
             guard let address = deviceData["address"] as? String else {
                 print("Invalid address")
-                return false
+                completion(.failure(NSError(domain: "InvalidAddress", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid address"])))
+                return
             }
             
+            // Store the completion handler
+            deviceConnectionCompletion = completion
+            
             // Find the BLEModel that matches the provided address
-            if let model = discoveredPeripherals.first(where: { $0.peripheral.identifier.uuidString == address }) {
+            if let model = discoveredPeripherals.first(where: { $0.addressStr == address }) {
                 RFIDBlutoothManager.share().connect(model.peripheral, macAddress: model.addressStr)
-                return true
             } else {
                 print("Peripheral with address \(address) not found")
-                return false
+                completion(.failure(NSError(domain: "PeripheralNotFound", code: -1, userInfo: [NSLocalizedDescriptionKey: "Peripheral with address \(address) not found"])))
             }
         }
     
@@ -58,50 +62,33 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             peripheralCompletion = completion
         }
     
+    
     // For getting the power level
-    func getPowerLevel(completion: @escaping (Result<Int, Error>) -> Void) {
-        do {
+        func getPowerLevel(completion: @escaping (Result<Int, Error>) -> Void) {
+            // Store the completion handler to be called when the power level is received
+            getPowerLevelCompletion = completion
+            
             // Request the power level
             RFIDBlutoothManager.share().getLaunchPower()
-            
-            // Wait for the response from the delegate method
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let powerLevel = self.currentPowerLevel {
-                    print("Got power level: \(powerLevel)")
-                    completion(.success(powerLevel))
-                } else {
-                    print("Power level not available")
-                    completion(.failure(NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Power level not available"])))
-                }
-            }
+            print("Power level request initiated")
         }
-    }
     
     // For setting the power level
-    func setPowerLevel(powerLevel: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-        guard let powerLevel = powerLevel, (powerLevel == 1 || powerLevel == 30) else {
-            let error = NSError(domain: "INVALID_ARGUMENT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid power level: \(String(describing: powerLevel)). Only 1 or 30 are allowed."])
-            print("Invalid power level: \(String(describing: powerLevel)). Only 1 or 30 are allowed.")
+    func setPowerLevel(powerLevel: Int, completion: @escaping (Result<Bool, Error>) -> Void) {
+        // Store the completion handler to be called when the power level is set
+        setPowerLevelCompletion = completion
+        
+        // Validate the power level input
+        guard (powerLevel == 1 || powerLevel == 30) else {
+            let error = NSError(domain: "INVALID_ARGUMENT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid power level: \(powerLevel). Only 1 or 30 are allowed."])
+            print("Invalid power level: \(powerLevel). Only 1 or 30 are allowed.")
             completion(.failure(error))
             return
         }
         
-        do {
-            // Request to set the power level
-            RFIDBlutoothManager.share().setLaunchPowerWithstatus("1", antenna: "1", readStr: powerLevel, writeStr: powerLevel)
-            
-            // Wait for the response from the delegate method
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let success = self.setPowerLevelSuccess {
-                    print("Set power level to: \(powerLevel), success: \(success)")
-                    completion(.success(success))
-                } else {
-                    print("Unable to set power level")
-                    let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to set power level"])
-                    completion(.failure(error))
-                }
-            }
-        }
+        // Request to set the power level
+        RFIDBlutoothManager.share().setLaunchPowerWithstatus("1", antenna: "1", readStr: "\(powerLevel)", writeStr: "\(powerLevel)")
+        print("Set power level request initiated")
     }
     
     func getBatteryLevel(completion: @escaping (Result<String, Error>) -> Void) {
@@ -123,7 +110,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     // MARK: - FatScaleBluetoothManager Methods
-    func rfidConfigCallback(_ data: String, _ function: Int) {
+    func rfidConfig(_ data: String, function: Int) {
         switch function {
         case 0x01:
             let hardwareVersion = "Hardware Versions: \(data)"
@@ -149,13 +136,27 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             setPowerLevelSuccess = success
             print(success ? "Set power level successfully" : "Failed to set power level")
             
+            // Call the stored completion handler with the success status
+            setPowerLevelCompletion?(.success(success))
+            
+            // Clear the completion handler after use
+            setPowerLevelCompletion = nil
+            
         case 0x13:
             if let powerLevel = Int(data) {
                 currentPowerLevel = powerLevel
                 print("Read power level successfully: \(powerLevel)")
+                
+                // Call the stored completion handler with the power level
+                getPowerLevelCompletion?(.success(powerLevel))
             } else {
                 print("Failed to read power level")
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Power level not available."])
+               getPowerLevelCompletion?(.failure(error))
             }
+            
+            // Clear the completion handler after use
+           getPowerLevelCompletion = nil
             
         case 0x15:
             let msg = data == "1" ? "success" : "fail"
@@ -279,9 +280,10 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     func disConnectPeripheral() {}
     
     func connectPeripheralSuccess(_ name: String?) {
-        // Device got connected
-        
-    }
+            // Device got connected
+            deviceConnectionCompletion?(.success(true))
+            deviceConnectionCompletion = nil // Reset the completion handler after use
+        }
     
     func receiveGetGen2(with data: Data?) {}
     

@@ -1,0 +1,1 @@
+ /Users/walkingtree/flutterProject/core_bluetooth_connectivity/.dart_tool/flutter_build/86b8e7b9aad2c2708cbcc8caa60d6f8f/native_assets.yaml: 

@@ -138,7 +138,7 @@ import UIKit
     }
     
     private func setPower(result:String){
-                intractor.setPowerLevel(powerLevel: result, completion: <#T##(Result<Bool, Error>) -> Void#>)
+        //        intractor.setPowerLevel(powerLevel: result, completion: <#T##(Result<Bool, Error>) -> Void#>)
     }
 }
 

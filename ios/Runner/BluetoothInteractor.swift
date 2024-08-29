@@ -110,7 +110,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     // MARK: - FatScaleBluetoothManager Methods
-    func rfidConfig(_ data: String, function: Int) {
+   @objc func rfidConfigCallback(_ data: String, function: Int) {
         switch function {
         case 0x01:
             let hardwareVersion = "Hardware Versions: \(data)"

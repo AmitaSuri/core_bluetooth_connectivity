@@ -95,14 +95,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _getPower() async {
     try {
-      await platform.invokeMethod('getPower');
+     int value = await platform.invokeMethod('getPower');
+     print("getPower:-$value");
     } on PlatformException catch (e) {
       print("Failed to make device discoverable: '${e.message}'.");
     }
   }
   Future<void> _setPower() async {
     try {
-      await platform.invokeMethod('setPower',{"powerLevel":1});
+     bool value = await platform.invokeMethod('setPower',{"powerLevel":30});
+     print("$value");
     } on PlatformException catch (e) {
       print("Failed to make device discoverable: '${e.message}'.");
     }

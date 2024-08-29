@@ -32,10 +32,24 @@ import UIKit
                     }
                 }
             case "getPower":
-                self.getPower(completion: result)
+                self.getPower() { res in
+                    switch  res {
+                    case .success(let power):
+                        result(power)
+                    case .failure(let error):
+                        result(FlutterError(code: "UNAVAILABLE", message: "Failed to Get the Power: \(error.localizedDescription)", details: nil))
+                    }
+                }
             case "setPower":
                 if let args = call.arguments as? [String: Int], let power = args["powerLevel"] {
-                    self.setPower(power: power, completion: result)
+                    self.setPower(power: power ) { res in
+                        switch  res {
+                        case .success(let isPowerSet):
+                            result(isPowerSet)
+                        case .failure(let error):
+                            result(FlutterError(code: "UNAVAILABLE", message: "Failed to Set the Power: \(error.localizedDescription)", details: nil))
+                        }
+                    }
                 }
                 
             case "connect":

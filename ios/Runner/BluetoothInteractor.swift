@@ -23,10 +23,13 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     private var setPowerLevelSuccess: Bool?
     private var batteryLevel: String?
     weak var managerDelegate: FatScaleBluetoothManager?
+    
     private var peripheralCompletion: ((Result<[String: Any], Error>) -> Void)?
     private var setPowerLevelCompletion: ((Result<Bool, Error>) -> Void)?
     private var getPowerLevelCompletion: ((Result<Int, Error>) -> Void)?
     private var deviceConnectionCompletion: ((Result<Bool, Error>) -> Void)?
+    private var disconnectCompletion: ((Result<Bool, Error>) -> Void)?
+    private var batteryLevelCompletion: ((Result<String, Error>) -> Void)?
     
     override init() {
         super.init()
@@ -52,6 +55,16 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             }
         }
 
+    func disconnect(completion: @escaping (Result<Bool, Error>) -> Void) {
+            // Store the completion handler to be called when disconnection is confirmed
+            disconnectCompletion = completion
+            
+            // Initiate disconnection
+//            RFIDBlutoothManager.share().closeBleAndDisconnect()
+        RFIDBlutoothManager.share().cancelConnectBLE()
+            print("Disconnection initiated")
+        }
+    
     func startBLEScan() {
         // Start scanning for BLE peripherals
         RFIDBlutoothManager.share().bleDoScan()
@@ -92,21 +105,12 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     func getBatteryLevel(completion: @escaping (Result<String, Error>) -> Void) {
-        do {
-            // Request the battery level
-            RFIDBlutoothManager.share().getBatteryLevel()
-            
-            // Wait for the response from the delegate method
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let batteryLevel = self.batteryLevel {
-                    print("Got battery level: \(batteryLevel)")
-                    completion(.success(batteryLevel))
-                } else {
-                    print("Battery level not available")
-                    completion(.failure(NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Battery level not available"])))
-                }
-            }
-        }
+        // Store the completion handler to be called when the battery level is received
+        batteryLevelCompletion = completion
+        
+        // Request the battery level
+        RFIDBlutoothManager.share().getBatteryLevel()
+        print("Battery level request initiated")
     }
     
     // MARK: - FatScaleBluetoothManager Methods
@@ -205,9 +209,15 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             print("Upgrade successful")
             
         case 0xE5:
-            batteryLevel = data
-            let batteryLevelPer = "Battery: \(data)%"
-            print(batteryLevelPer)
+            let batteryLevelStr = "\(data)%"
+            print(batteryLevelStr)
+            
+            // Call the stored completion handler with the battery level
+            batteryLevelCompletion?(.success(batteryLevelStr))
+            
+            
+            // Clear the completion handler after use
+            batteryLevelCompletion = nil
             
         case 0xE500, 0xE501:
             let msg = data == "1" ? "success" : "fail"
@@ -277,12 +287,22 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         }
     }
     
-    func disConnectPeripheral() {}
-    
     func connectPeripheralSuccess(_ name: String?) {
             // Device got connected
             deviceConnectionCompletion?(.success(true))
             deviceConnectionCompletion = nil // Reset the completion handler after use
+        }
+    
+    func disConnectPeripheral() {
+            // Assuming connectDevice is a boolean indicating connection status
+            let isDisconnected = RFIDBlutoothManager.share().connectDevice == false
+            
+            // Call the completion handler with the result of disconnection
+            if let completion = disconnectCompletion {
+                completion(.success(isDisconnected))
+                // Clear the completion handler after use
+                disconnectCompletion = nil
+            }
         }
     
     func receiveGetGen2(with data: Data?) {}

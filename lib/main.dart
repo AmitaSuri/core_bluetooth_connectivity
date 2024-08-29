@@ -82,17 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // Future<void> _startBluetoothDiscovery() async {
-  //   try {
-  //     await platform.invokeMethod('startBluetoothDiscovery');
-  //     // Call _getAvailableDevices after starting discovery to refresh the list
-  //     await _getAvailableDevices();
-  //   } on PlatformException catch (e) {
-  //     print("Failed to start Bluetooth discovery: '${e.message}'.");
-  //   }
-  // }
-
-
   Future<void> _getPower() async {
     try {
      int value = await platform.invokeMethod('getPower');
@@ -101,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print("Failed to make device discoverable: '${e.message}'.");
     }
   }
+
   Future<void> _setPower() async {
     try {
      bool value = await platform.invokeMethod('setPower',{"powerLevel":30});
@@ -116,6 +106,22 @@ class _MyHomePageState extends State<MyHomePage> {
     print(value);
     } on PlatformException catch (e) {
       print("Failed to connect to device: '${e.message}'.");
+    }
+  }
+  Future<void> _disConnect() async {
+    try {
+    bool value =  await platform.invokeMethod('disConnect');
+    print("disConnect:-$value");
+    } on PlatformException catch (e) {
+      print("Failed to disConnect to device: '${e.message}'.");
+    }
+  }
+  Future<void> _getBatteryLevel() async {
+    try {
+    String value =  await platform.invokeMethod('getBatteryLevel');
+    print("rfid:-$value");
+    } on PlatformException catch (e) {
+      print("Failed to disConnect to device: '${e.message}'.");
     }
   }
 
@@ -150,6 +156,18 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton(
                 onPressed: _setPower,
                 child: const Text('set Power'),
+              ),
+              ElevatedButton(
+                onPressed: _setPower,
+                child: const Text('set Power'),
+              ),
+              ElevatedButton(
+                onPressed: _getBatteryLevel,
+                child: const Text('Get Battery level'),
+              ),
+              ElevatedButton(
+                onPressed: _disConnect,
+                child: const Text('DisConnect'),
               ),
               const SizedBox(height: 20),
               _loading

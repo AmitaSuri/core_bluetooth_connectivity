@@ -65,11 +65,24 @@ import UIKit
                     } else {
                         result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
                     }
-//                if let args = call.arguments as? [String: Any]{
-//                    self.connect(deviceData: args, completion: result)
-//                } else {
-//                    result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
-//                }
+            case "disConnect":
+                self.disConnect() { res in
+                    switch  res {
+                    case .success(let isConnected):
+                        result(isConnected)
+                    case .failure(let error):
+                        result(FlutterError(code: "UNAVAILABLE", message: "Failed to Connect device: \(error.localizedDescription)", details: nil))
+                    }
+                }
+            case "getBatteryLevel":
+                self.getBatteryLevel() { res in
+                    switch  res {
+                    case .success(let battery):
+                        result(battery)
+                    case .failure(let error):
+                        result(FlutterError(code: "UNAVAILABLE", message: "Failed to get baater level: \(error.localizedDescription)", details: nil))
+                    }
+                }
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -105,31 +118,7 @@ import UIKit
         })
         window?.rootViewController?.present(alertController, animated: true, completion: nil)
     }
-    
-    //    private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
-    //        intractor.startBLEScan()
-    //        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0){ [weak self] in
-    //            self?.intractor.getDiscoveredPeripherals { result in
-    //                switch result {
-    //                case .success(let models):
-    //                    if let firstModel = models.first,
-    //                       let name = firstModel["name"] as? String,
-    //                       let address = firstModel["address"] as? String{
-    //                        let resultDict: [String?: String?] = [
-    //                            "name": name,
-    //                            "address": address
-    //                        ]
-    //                        completion(.success(resultDict))
-    //                    } else {
-    //                        completion(.failure(NSError(domain: "com.example.Bluetooth", code: 404, userInfo: [NSLocalizedDescriptionKey: "No peripherals found"])))
-    //                    }
-    //
-    //                case .failure(let error):
-    //                    completion(.failure(error))
-    //                }
-    //            }
-    //        }
-    //    }
+//                       let name = firstModel["name"] as? String,
     
     private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         // First, set up the completion handler
@@ -171,6 +160,33 @@ import UIKit
         }
     }
     
+    private func disConnect(completion: @escaping (Result<Bool, Error>) ->Void) {
+        intractor.disconnect { res in
+            switch res {
+            case .success(let disConnected):
+                completion(.success(disConnected))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to connect To device"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    private func getBatteryLevel(completion: @escaping (Result<String, Error>) ->Void) {
+        intractor.getBatteryLevel { res in
+            switch res {
+            case .success(let battery):
+                completion(.success(battery))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to fetch battery percentage."])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    
+    
+    //this method is use to get power
     private func getPower(completion: @escaping (Result<Int, Error>) -> Void) {
         intractor.getPowerLevel { res in
             switch res {
@@ -183,8 +199,7 @@ import UIKit
         }
     }
     
-    
-    
+    // this method is setting the power of 1 or 30
     private func setPower(power:Int, completion: @escaping (Result<Bool, Error>) -> Void) {
         intractor.setPowerLevel(powerLevel: power) { res in
             switch res {

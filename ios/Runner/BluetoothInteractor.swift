@@ -33,25 +33,25 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         RFIDBlutoothManager.share().setFatScaleBluetoothDelegate(self)
     }
     
-    func connectToDevice(deviceData: [String: Any], completion: @escaping (Result<Bool, Error>) -> Void) {
+    func connectToDevice(deviceData: [String: String?], completion: @escaping (Result<Bool, Error>) -> Void) {
             guard let address = deviceData["address"] as? String else {
                 print("Invalid address")
                 completion(.failure(NSError(domain: "InvalidAddress", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid address"])))
                 return
             }
-            
+
             // Store the completion handler
             deviceConnectionCompletion = completion
-            
+
             // Find the BLEModel that matches the provided address
-            if let model = discoveredPeripherals.first(where: { $0.addressStr == address }) {
+        if let model = discoveredPeripherals.first(where: { $0.peripheral.identifier.uuidString == address }) {
                 RFIDBlutoothManager.share().connect(model.peripheral, macAddress: model.addressStr)
             } else {
                 print("Peripheral with address \(address) not found")
                 completion(.failure(NSError(domain: "PeripheralNotFound", code: -1, userInfo: [NSLocalizedDescriptionKey: "Peripheral with address \(address) not found"])))
             }
         }
-    
+
     func startBLEScan() {
         // Start scanning for BLE peripherals
         RFIDBlutoothManager.share().bleDoScan()

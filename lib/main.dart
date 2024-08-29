@@ -108,9 +108,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _connect(Map<String,String?> deviceName) async {
+  Future<void> _connect(Map<String,String?> device) async {
     try {
-      await platform.invokeMethod('connect',deviceName);
+    bool value =  await platform.invokeMethod('connect',device);
+    print(value);
     } on PlatformException catch (e) {
       print("Failed to connect to device: '${e.message}'.");
     }

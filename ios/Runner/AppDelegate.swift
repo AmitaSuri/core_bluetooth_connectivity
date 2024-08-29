@@ -25,8 +25,8 @@ import UIKit
             case "getAvailableDevices":
                 self.getAvailableDevices { res in
                     switch res {
-                    case .success(let model):
-                        result(model)
+                    case .success(let device):
+                        result(device)
                     case .failure(let error):
                         result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
                     }
@@ -39,11 +39,23 @@ import UIKit
                 }
                 
             case "connect":
-                if let args = call.arguments as? [String: Any]{
-                    self.connect(deviceData: args, completion: result)
-                } else {
-                    result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
-                }
+                    if let args = call.arguments as? [String: String?] {
+                        self.connect(deviceData: args) { res in
+                            switch  res {
+                            case .success(let isConnected):
+                                result(isConnected)
+                            case .failure(let error):
+                                result(FlutterError(code: "UNAVAILABLE", message: "Failed to Connect device: \(error.localizedDescription)", details: nil))
+                            }
+                        }
+                    } else {
+                        result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
+                    }
+//                if let args = call.arguments as? [String: Any]{
+//                    self.connect(deviceData: args, completion: result)
+//                } else {
+//                    result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for connectToDevice", details: nil))
+//                }
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -133,8 +145,7 @@ import UIKit
         result(nil)
     }
     
-    private func connect(deviceData: [String:Any], completion: @escaping (Result<Bool, Error>) ->Void) {
-        //        let deviceData: [String,String] = ["address":deviceName];
+    private func connect(deviceData: [String:String?], completion: @escaping (Result<Bool, Error>) ->Void) {
         let result =  intractor.connectToDevice(deviceData: deviceData) { res in
             switch res {
             case .success(let connected):

@@ -78,7 +78,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     // For setting the power level
-    func setPowerLevel(powerLevel: Int?, completion: @escaping (Result<Bool, Error>) -> Void) {
+    func setPowerLevel(powerLevel: String, completion: @escaping (Result<Bool, Error>) -> Void) {
         guard let powerLevel = powerLevel, (powerLevel == 1 || powerLevel == 30) else {
             let error = NSError(domain: "INVALID_ARGUMENT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid power level: \(String(describing: powerLevel)). Only 1 or 30 are allowed."])
             print("Invalid power level: \(String(describing: powerLevel)). Only 1 or 30 are allowed.")
@@ -88,7 +88,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         
         do {
             // Request to set the power level
-            RFIDBlutoothManager.share().setLaunchPowerWithstatus("1", antenna: "1", readStr: "\(powerLevel)", writeStr: "\(powerLevel)")
+            RFIDBlutoothManager.share().setLaunchPowerWithstatus("1", antenna: "1", readStr: powerLevel, writeStr: powerLevel)
             
             // Wait for the response from the delegate method
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

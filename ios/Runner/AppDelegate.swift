@@ -137,9 +137,28 @@ import UIKit
        
     }
     
-    private func setPower(result:String){
-        //        intractor.setPowerLevel(powerLevel: result, completion: <#T##(Result<Bool, Error>) -> Void#>)
+    private func getPower(completion: @escaping (Result<Int, Error>) -> Void) {
+        intractor.setPowerLevel(powerLevel: result) { res in
+            switch res {
+            case .success(let power):
+                completion(.success(power))
+            case.failure:
+                completion(.failure((FlutterError(code: "Failed_get_power", message: "Failed to get power level: \(error.localizedDescription)", details: nil))))
+            }
+        }
     }
+    
+    private func setPower(result:String, completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.setPowerLevel(powerLevel: result) { res in
+            switch res {
+            case .success(let isSet):
+                completion(.success(isSet))
+            case.failure:
+                completion(.failure((FlutterError(code: "Failed_set_power", message: "Failed to set power level: \(error.localizedDescription)", details: nil))))
+            }
+        }
+    }
+}
 }
 
 extension AppDelegate: CBCentralManagerDelegate {

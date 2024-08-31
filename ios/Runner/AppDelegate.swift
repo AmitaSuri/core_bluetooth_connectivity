@@ -8,6 +8,9 @@ import UIKit
     private var centralManager: CBCentralManager!
     private var discoveredDevices: [CBPeripheral] = []
     private var flutterResult: FlutterResult?
+    private var eventChannel: FlutterEventChannel?
+    var streamHandler = MyStreamHandler()
+    
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -17,6 +20,9 @@ import UIKit
         let controller = window?.rootViewController as! FlutterViewController
         let bluetoothChannel = FlutterMethodChannel(name: "samples.flutter.dev/bluetooth",
                                                     binaryMessenger: controller.binaryMessenger)
+        eventChannel = FlutterEventChannel(name: "samples.flutter.dev/tag_scanned", binaryMessenger: controller.binaryMessenger)
+            eventChannel?.setStreamHandler(streamHandler)
+        
         bluetoothChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
             guard let self = self else { return }
             switch call.method {
@@ -27,6 +33,7 @@ import UIKit
                     switch res {
                     case .success(let device):
                         result(device)
+//                        bluetoothChannel.invokeMethod("onDeviceDiscovered", arguments: device)
                     case .failure(let error):
                         result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
                     }
@@ -83,6 +90,56 @@ import UIKit
                         result(FlutterError(code: "UNAVAILABLE", message: "Failed to get baater level: \(error.localizedDescription)", details: nil))
                     }
                 }
+            case "startScanning":
+                self.startScanning() { res in
+                    if let eventSink = self.streamHandler.eventSink {
+                        switch res {
+                        case .success(let tagData):
+                            eventSink(tagData)
+                        case .failure(let error):
+                            eventSink(FlutterError(code: "SCAN_FAILED", message: error.localizedDescription, details: nil))
+                        }
+                    }
+                }
+            case "stopScanning":
+                self.stopScanning() { res in
+                    switch res {
+                    case .success(let tagData):
+                       result(tagData)
+                    case .failure(let error):
+                        result(FlutterError(code: "SCAN_FAILED", message: error.localizedDescription, details: nil))
+                    }
+                }
+            case "clearAllTags":
+                self.clearAllTags() { res in
+                    switch res {
+                    case .success(let tagData):
+                        result(tagData)
+                    case .failure(let error):
+                        result(FlutterError(code: "SCAN_FAILED", message: error.localizedDescription, details: nil))
+                    }
+                }
+            case "clearSingleTag":
+                    if  let args = call.arguments as? String {
+                        self.clearSingleTag(epc: args) { res in
+                            switch res {
+                                case .success(let tagData):
+                                    result(tagData)
+                                case .failure(let error):
+                                    result(FlutterError(code: "SCAN_FAILED", message: error.localizedDescription, details: nil))
+                            }
+                        }}
+            case "checkReaderConnectivity":
+                self.checkReaderConnectivity() { res in
+                    switch res {
+                    case .success(let isConnected):
+                        result(isConnected)
+                    case .failure(let error):
+                        result(FlutterError(code: "SCAN_FAILED", message: error.localizedDescription, details: nil))
+                    }
+                }
+            case "stopCheckingReaderConnectivity":
+                self.stopCheckingReaderConnectivity()
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -118,7 +175,6 @@ import UIKit
         })
         window?.rootViewController?.present(alertController, animated: true, completion: nil)
     }
-//                       let name = firstModel["name"] as? String,
     
     private func getAvailableDevices(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         // First, set up the completion handler
@@ -172,7 +228,7 @@ import UIKit
         }
     }
     
-    private func getBatteryLevel(completion: @escaping (Result<String, Error>) ->Void) {
+    private func getBatteryLevel(completion: @escaping (Result<Int, Error>) ->Void) {
         intractor.getBatteryLevel { res in
             switch res {
             case .success(let battery):
@@ -211,6 +267,75 @@ import UIKit
             }
         }
     }
+    
+    // this method is setting for Start tag scan
+    private func startScanning(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        intractor.startScan() { res in
+            switch res {
+            case .success(let data):
+                completion(.success(data))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    // this method is setting for Stop tag scan
+    private func stopScanning(completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.stopScan() { res in
+            switch res {
+            case .success(let data):
+                completion(.success(data))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    // this method is setting for Start tag scan
+    private func clearAllTags(completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.cleanAllTags() { res in
+            switch res {
+            case .success(let data):
+                completion(.success(data))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    // this method is setting for Start tag scan
+    private func clearSingleTag(epc: String,completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.cleanTag(epc){ res in
+            switch res {
+            case .success(let data):
+                completion(.success(data))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    private func checkReaderConnectivity(completion: @escaping (Result<Bool, Error>) -> Void) {
+        intractor.checkReaderConnectivity() { res in
+            switch res {
+            case .success(let data):
+                completion(.success(data))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    private func stopCheckingReaderConnectivity() {
+        intractor.stopCheckingReaderConnectivity()
+    }
+    
 }
 
 extension AppDelegate: CBCentralManagerDelegate {
@@ -241,5 +366,21 @@ extension AppDelegate: CBCentralManagerDelegate {
         print("Failed to connect to \(peripheral.name ?? "Unknown Device")")
         flutterResult?(FlutterError(code: "CONNECTION_FAILED", message: "Failed to connect to device", details: error?.localizedDescription))
         flutterResult = nil
+    }
+       
+}
+
+class MyStreamHandler: NSObject, FlutterStreamHandler {
+
+    var eventSink: FlutterEventSink?
+    
+    func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        self.eventSink = events
+        return nil
+    }
+    
+    func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        self.eventSink = nil
+        return nil
     }
 }

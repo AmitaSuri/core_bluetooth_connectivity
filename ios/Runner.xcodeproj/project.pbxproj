@@ -13,11 +13,11 @@
 		3D5BEBB72C7F86D9006696AD /* BluetoothInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBB62C7F86D9006696AD /* BluetoothInteractor.swift */; };
 		3D5BEBBB2C7F9B0C006696AD /* Reader_v2_0_4.bin in Resources */ = {isa = PBXBuildFile; fileRef = 3D5BEBB92C7F9B0C006696AD /* Reader_v2_0_4.bin */; };
 		3D5BEBBC2C7F9B0C006696AD /* Reader.bin in Resources */ = {isa = PBXBuildFile; fileRef = 3D5BEBBA2C7F9B0C006696AD /* Reader.bin */; };
-		3D5BEBD72C7F9D5A006696AD /* AppHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBCE2C7F9D5A006696AD /* AppHelper.m */; };
-		3D5BEBD82C7F9D5A006696AD /* BluetoothUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBCF2C7F9D5A006696AD /* BluetoothUtil.m */; };
-		3D5BEBD92C7F9D5A006696AD /* UHFTagInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBD02C7F9D5A006696AD /* UHFTagInfo.m */; };
-		3D5BEBDA2C7F9D5A006696AD /* BLEModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBD22C7F9D5A006696AD /* BLEModel.m */; };
-		3D5BEBDB2C7F9D5A006696AD /* RFIDBlutoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D5BEBD52C7F9D5A006696AD /* RFIDBlutoothManager.m */; };
+		3DC6AB752C82027200A9E9BB /* BLEModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DC6AB6B2C82027200A9E9BB /* BLEModel.m */; };
+		3DC6AB762C82027200A9E9BB /* UHFTagInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DC6AB6E2C82027200A9E9BB /* UHFTagInfo.m */; };
+		3DC6AB772C82027200A9E9BB /* BluetoothUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DC6AB6F2C82027200A9E9BB /* BluetoothUtil.m */; };
+		3DC6AB782C82027200A9E9BB /* RFIDBlutoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DC6AB702C82027200A9E9BB /* RFIDBlutoothManager.m */; };
+		3DC6AB792C82027200A9E9BB /* AppHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DC6AB722C82027200A9E9BB /* AppHelper.m */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -56,16 +56,16 @@
 		3D5BEBB62C7F86D9006696AD /* BluetoothInteractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothInteractor.swift; sourceTree = "<group>"; };
 		3D5BEBB92C7F9B0C006696AD /* Reader_v2_0_4.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = Reader_v2_0_4.bin; sourceTree = "<group>"; };
 		3D5BEBBA2C7F9B0C006696AD /* Reader.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = Reader.bin; sourceTree = "<group>"; };
-		3D5BEBCD2C7F9D5A006696AD /* AppHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppHelper.h; sourceTree = "<group>"; };
-		3D5BEBCE2C7F9D5A006696AD /* AppHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppHelper.m; sourceTree = "<group>"; };
-		3D5BEBCF2C7F9D5A006696AD /* BluetoothUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BluetoothUtil.m; sourceTree = "<group>"; };
-		3D5BEBD02C7F9D5A006696AD /* UHFTagInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UHFTagInfo.m; sourceTree = "<group>"; };
-		3D5BEBD12C7F9D5A006696AD /* BluetoothUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BluetoothUtil.h; sourceTree = "<group>"; };
-		3D5BEBD22C7F9D5A006696AD /* BLEModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLEModel.m; sourceTree = "<group>"; };
-		3D5BEBD32C7F9D5A006696AD /* BLEModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEModel.h; sourceTree = "<group>"; };
-		3D5BEBD42C7F9D5A006696AD /* RFIDBlutoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFIDBlutoothManager.h; sourceTree = "<group>"; };
-		3D5BEBD52C7F9D5A006696AD /* RFIDBlutoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFIDBlutoothManager.m; sourceTree = "<group>"; };
-		3D5BEBD62C7F9D5A006696AD /* UHFTagInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UHFTagInfo.h; sourceTree = "<group>"; };
+		3DC6AB6B2C82027200A9E9BB /* BLEModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLEModel.m; sourceTree = "<group>"; };
+		3DC6AB6C2C82027200A9E9BB /* RFIDBlutoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFIDBlutoothManager.h; sourceTree = "<group>"; };
+		3DC6AB6D2C82027200A9E9BB /* UHFTagInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UHFTagInfo.h; sourceTree = "<group>"; };
+		3DC6AB6E2C82027200A9E9BB /* UHFTagInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UHFTagInfo.m; sourceTree = "<group>"; };
+		3DC6AB6F2C82027200A9E9BB /* BluetoothUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BluetoothUtil.m; sourceTree = "<group>"; };
+		3DC6AB702C82027200A9E9BB /* RFIDBlutoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFIDBlutoothManager.m; sourceTree = "<group>"; };
+		3DC6AB712C82027200A9E9BB /* AppHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppHelper.h; sourceTree = "<group>"; };
+		3DC6AB722C82027200A9E9BB /* AppHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppHelper.m; sourceTree = "<group>"; };
+		3DC6AB732C82027200A9E9BB /* BLEModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEModel.h; sourceTree = "<group>"; };
+		3DC6AB742C82027200A9E9BB /* BluetoothUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BluetoothUtil.h; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -106,19 +106,19 @@
 			path = other;
 			sourceTree = "<group>";
 		};
-		3D5BEBBD2C7F9C50006696AD /* RfidService */ = {
+		3DC6AB6A2C82021900A9E9BB /* RfidService */ = {
 			isa = PBXGroup;
 			children = (
-				3D5BEBCD2C7F9D5A006696AD /* AppHelper.h */,
-				3D5BEBCE2C7F9D5A006696AD /* AppHelper.m */,
-				3D5BEBD32C7F9D5A006696AD /* BLEModel.h */,
-				3D5BEBD22C7F9D5A006696AD /* BLEModel.m */,
-				3D5BEBD12C7F9D5A006696AD /* BluetoothUtil.h */,
-				3D5BEBCF2C7F9D5A006696AD /* BluetoothUtil.m */,
-				3D5BEBD42C7F9D5A006696AD /* RFIDBlutoothManager.h */,
-				3D5BEBD52C7F9D5A006696AD /* RFIDBlutoothManager.m */,
-				3D5BEBD62C7F9D5A006696AD /* UHFTagInfo.h */,
-				3D5BEBD02C7F9D5A006696AD /* UHFTagInfo.m */,
+				3DC6AB712C82027200A9E9BB /* AppHelper.h */,
+				3DC6AB722C82027200A9E9BB /* AppHelper.m */,
+				3DC6AB732C82027200A9E9BB /* BLEModel.h */,
+				3DC6AB6B2C82027200A9E9BB /* BLEModel.m */,
+				3DC6AB742C82027200A9E9BB /* BluetoothUtil.h */,
+				3DC6AB6F2C82027200A9E9BB /* BluetoothUtil.m */,
+				3DC6AB6C2C82027200A9E9BB /* RFIDBlutoothManager.h */,
+				3DC6AB702C82027200A9E9BB /* RFIDBlutoothManager.m */,
+				3DC6AB6D2C82027200A9E9BB /* UHFTagInfo.h */,
+				3DC6AB6E2C82027200A9E9BB /* UHFTagInfo.m */,
 			);
 			path = RfidService;
 			sourceTree = "<group>";
@@ -156,7 +156,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				3D5BEBBD2C7F9C50006696AD /* RfidService */,
+				3DC6AB6A2C82021900A9E9BB /* RfidService */,
 				3D5BEBB82C7F9A95006696AD /* other */,
 				3D5BEBB62C7F86D9006696AD /* BluetoothInteractor.swift */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
@@ -320,14 +320,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DC6AB762C82027200A9E9BB /* UHFTagInfo.m in Sources */,
+				3DC6AB782C82027200A9E9BB /* RFIDBlutoothManager.m in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
-				3D5BEBD72C7F9D5A006696AD /* AppHelper.m in Sources */,
-				3D5BEBDB2C7F9D5A006696AD /* RFIDBlutoothManager.m in Sources */,
-				3D5BEBD92C7F9D5A006696AD /* UHFTagInfo.m in Sources */,
-				3D5BEBDA2C7F9D5A006696AD /* BLEModel.m in Sources */,
+				3DC6AB772C82027200A9E9BB /* BluetoothUtil.m in Sources */,
+				3DC6AB752C82027200A9E9BB /* BLEModel.m in Sources */,
 				3D5BEBB72C7F86D9006696AD /* BluetoothInteractor.swift in Sources */,
-				3D5BEBD82C7F9D5A006696AD /* BluetoothUtil.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				3DC6AB792C82027200A9E9BB /* AppHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,6 +385,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -408,6 +409,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -425,6 +427,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2TS25U8NW5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -510,6 +513,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -539,6 +543,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -567,6 +572,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -591,6 +597,7 @@
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -609,6 +616,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2TS25U8NW5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -636,6 +644,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 2TS25U8NW5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

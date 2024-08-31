@@ -8,28 +8,27 @@
 import UIKit
 import CoreBluetooth
 
-class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate, FatScaleBluetoothManager {
+class BluetoothInteractor: NSObject, CBPeripheralDelegate, FatScaleBluetoothManager {
     
     private var discoveredPeripherals: [BLEModel] = []
-    private var selectedPeripheral: CBPeripheral?
-    private var connectedPeripherals: [CBPeripheral] = []
     private var macAddress = ""
-    private var uuidDataList = [String]()
     private var myCharacteristic: CBCharacteristic?
     private var uhfData = NSMutableData()
-    private var isConnect: Bool = false
-    
+    var sentTags: Set<String> = []
     private var currentPowerLevel: Int?
     private var setPowerLevelSuccess: Bool?
-    private var batteryLevel: String?
+    private var batteryLevel: Int?
     weak var managerDelegate: FatScaleBluetoothManager?
-    
+    private var tagInfo = [UHFTagInfo]()
+    private var isRunning = false
+    private var timer: Timer?
+    var onTagDiscovered: ((Result<[String: Any], Error>) -> Void)?
     private var peripheralCompletion: ((Result<[String: Any], Error>) -> Void)?
     private var setPowerLevelCompletion: ((Result<Bool, Error>) -> Void)?
     private var getPowerLevelCompletion: ((Result<Int, Error>) -> Void)?
     private var deviceConnectionCompletion: ((Result<Bool, Error>) -> Void)?
     private var disconnectCompletion: ((Result<Bool, Error>) -> Void)?
-    private var batteryLevelCompletion: ((Result<String, Error>) -> Void)?
+    private var batteryLevelCompletion: ((Result<Int, Error>) -> Void)?
     
     override init() {
         super.init()
@@ -37,33 +36,33 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     func connectToDevice(deviceData: [String: String?], completion: @escaping (Result<Bool, Error>) -> Void) {
-            guard let address = deviceData["address"] as? String else {
-                print("Invalid address")
-                completion(.failure(NSError(domain: "InvalidAddress", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid address"])))
-                return
-            }
-
-            // Store the completion handler
-            deviceConnectionCompletion = completion
-
-            // Find the BLEModel that matches the provided address
+        guard let address = deviceData["address"] as? String else {
+            print("Invalid address")
+            completion(.failure(NSError(domain: "InvalidAddress", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid address"])))
+            return
+        }
+        
+        // Store the completion handler
+        deviceConnectionCompletion = completion
+        
+        // Find the BLEModel that matches the provided address
         if let model = discoveredPeripherals.first(where: { $0.peripheral.identifier.uuidString == address }) {
-                RFIDBlutoothManager.share().connect(model.peripheral, macAddress: model.addressStr)
-            } else {
-                print("Peripheral with address \(address) not found")
-                completion(.failure(NSError(domain: "PeripheralNotFound", code: -1, userInfo: [NSLocalizedDescriptionKey: "Peripheral with address \(address) not found"])))
-            }
+            RFIDBlutoothManager.share().connect(model.peripheral, macAddress: model.addressStr)
+        } else {
+            print("Peripheral with address \(address) not found")
+            completion(.failure(NSError(domain: "PeripheralNotFound", code: -1, userInfo: [NSLocalizedDescriptionKey: "Peripheral with address \(address) not found"])))
         }
-
+    }
+    
     func disconnect(completion: @escaping (Result<Bool, Error>) -> Void) {
-            // Store the completion handler to be called when disconnection is confirmed
-            disconnectCompletion = completion
-            
-            // Initiate disconnection
-//            RFIDBlutoothManager.share().closeBleAndDisconnect()
-        RFIDBlutoothManager.share().cancelConnectBLE()
-            print("Disconnection initiated")
-        }
+        // Store the completion handler to be called when disconnection is confirmed
+        disconnectCompletion = completion
+        discoveredPeripherals.removeAll()
+        RFIDBlutoothManager.share().softwareReset()
+        // Initiate disconnection
+        RFIDBlutoothManager.share().closeBleAndDisconnect()
+        print("Disconnection initiated")
+    }
     
     func startBLEScan() {
         // Start scanning for BLE peripherals
@@ -71,20 +70,21 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     func getDiscoveredPeripherals(completion: @escaping (Result<[String: Any], Error>) -> Void) {
-            // Store the completion handler to call back as peripherals are discovered
-            peripheralCompletion = completion
-        }
+        discoveredPeripherals.removeAll()
+        // Store the completion handler to call back as peripherals are discovered
+        peripheralCompletion = completion
+    }
     
     
     // For getting the power level
-        func getPowerLevel(completion: @escaping (Result<Int, Error>) -> Void) {
-            // Store the completion handler to be called when the power level is received
-            getPowerLevelCompletion = completion
-            
-            // Request the power level
-            RFIDBlutoothManager.share().getLaunchPower()
-            print("Power level request initiated")
-        }
+    func getPowerLevel(completion: @escaping (Result<Int, Error>) -> Void) {
+        // Store the completion handler to be called when the power level is received
+        getPowerLevelCompletion = completion
+        
+        // Request the power level
+        RFIDBlutoothManager.share().getLaunchPower()
+        print("Power level request initiated")
+    }
     
     // For setting the power level
     func setPowerLevel(powerLevel: Int, completion: @escaping (Result<Bool, Error>) -> Void) {
@@ -104,7 +104,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         print("Set power level request initiated")
     }
     
-    func getBatteryLevel(completion: @escaping (Result<String, Error>) -> Void) {
+    func getBatteryLevel(completion: @escaping (Result<Int, Error>) -> Void) {
         // Store the completion handler to be called when the battery level is received
         batteryLevelCompletion = completion
         
@@ -113,8 +113,72 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
         print("Battery level request initiated")
     }
     
+    func startScan(onTagDiscovered: @escaping (Result<[String: Any], Error>) -> Void) {
+        self.onTagDiscovered = onTagDiscovered
+        RFIDBlutoothManager.share().startInventory()
+    }
+    
+    func stopScan(completion: @escaping (Result<Bool, Error>) -> Void) {
+        RFIDBlutoothManager.share().stopInventory()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            completion(.success(!RFIDBlutoothManager.share().isgetLab))
+        }
+    }
+    
+    func cleanAllTags(completion: @escaping (Result<Bool, Error>) -> Void) {
+        do {
+            tagInfo.removeAll()  // Clear all tags
+            sentTags.removeAll()
+            print("All tags have been cleaned.")
+            completion(.success(true))
+        }
+    }
+    
+    func cleanTag(_ tag: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+        if let index = tagInfo.firstIndex(where: { $0.epc == tag }), let sentIndex = sentTags.firstIndex(of: tag) {
+            sentTags.remove(at: sentIndex)
+            tagInfo.remove(at: index)  // Remove the specific tag
+            print("Tag with EPC: \(tag)")
+            completion(.success(true))
+        } else {
+            let error = NSError(domain: "TAG_NOT_FOUND", code: -1, userInfo: [NSLocalizedDescriptionKey: "Tag not found in the list."])
+            print("Failed to clean tag: Tag not found.")
+            completion(.failure(error))
+        }
+    }
+    
+    func checkReaderConnectivity(completion: @escaping (Result<Bool, Error>) -> Void) {
+        guard RFIDBlutoothManager.share().connectDevice == true else {
+            print("Device is not connected")
+            completion(.success(false))
+            return
+        }
+        
+        if isRunning { return }
+        isRunning = true
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            let isConnected = RFIDBlutoothManager.share().connectDevice
+            if !isConnected {
+                print("Disconnected from device")
+                completion(.success(false))
+            } else {
+                print("Still connected to device")
+                completion(.success(true))
+            }
+        }
+    }
+    
+    //........to be tested.........
+    func stopCheckingReaderConnectivity() {
+        isRunning = false
+        timer?.invalidate() // Cancel the timer
+        timer = nil // Clear the timer instance
+    }
+    
     // MARK: - FatScaleBluetoothManager Methods
-   @objc func rfidConfigCallback(_ data: String, function: Int) {
+    @objc func rfidConfigCallback(_ data: String, function: Int) {
         switch function {
         case 0x01:
             let hardwareVersion = "Hardware Versions: \(data)"
@@ -156,11 +220,11 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             } else {
                 print("Failed to read power level")
                 let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Power level not available."])
-               getPowerLevelCompletion?(.failure(error))
+                getPowerLevelCompletion?(.failure(error))
             }
             
             // Clear the completion handler after use
-           getPowerLevelCompletion = nil
+            getPowerLevelCompletion = nil
             
         case 0x15:
             let msg = data == "1" ? "success" : "fail"
@@ -209,12 +273,12 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             print("Upgrade successful")
             
         case 0xE5:
-            let batteryLevelStr = "\(data)%"
-            print(batteryLevelStr)
-            
-            // Call the stored completion handler with the battery level
-            batteryLevelCompletion?(.success(batteryLevelStr))
-            
+            if let batteryLevel = Int(data){
+                print(batteryLevel)
+                
+                // Call the stored completion handler with the battery level
+                batteryLevelCompletion?(.success(batteryLevel))
+            }
             
             // Clear the completion handler after use
             batteryLevelCompletion = nil
@@ -263,7 +327,45 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     
     func rfidBarcodeLabelCallBack(_ data: Data) {}
     
-    func rfidTagInfoCallback(_ tag: UHFTagInfo) {}
+    func rfidTagInfoCallback(_ tag: UHFTagInfo) {
+        var isHave = false
+        
+        // Check if the tag already exists in the localDataSource array
+        for i in 0..<tagInfo.count {
+            let oldEPC = tagInfo[i]
+            if (oldEPC.epc + oldEPC.tid) == (tag.epc + tag.tid) {
+                isHave = true
+                oldEPC.count += 1
+                oldEPC.rssi = tag.rssi
+                oldEPC.tid = tag.tid
+                oldEPC.user = tag.user
+                break
+            }
+        }
+        
+        // If the tag is not already in the array, add it
+        if !isHave {
+            tagInfo.append(tag)
+        }
+        
+        // Prepare the tag data dictionary
+        let tagData: [String: Any] = [
+            "epc": tag.epc,
+            "tid": tag.tid,
+            "rssi": tag.rssi,
+            "count": tag.count,
+            "user": tag.user
+        ]
+        
+        // Create a unique identifier for the tag
+        let tagIdentifier = "\(tag.epc)"
+        
+        // Send the tag data one by one if it has not been sent before
+        if !sentTags.contains(tagIdentifier) {
+            sentTags.insert(tagIdentifier)
+            onTagDiscovered?(.success(tagData))
+        }
+    }
     
     func connectBluetoothFail(withMessage message: String) {
         // blutooth fail
@@ -274,7 +376,7 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
             
             // Check if the peripheral has the required prefix and hasn't been added already
             if let name = model.nameStr, name.hasPrefix("UR"),
-            !discoveredPeripherals.contains(where: { $0.peripheral.identifier.uuidString == model.peripheral.identifier.uuidString }) {
+               !discoveredPeripherals.contains(where: { $0.peripheral.identifier.uuidString == model.peripheral.identifier.uuidString }) {
                 discoveredPeripherals.append(model)
                 
                 // Notify the completion handler for each newly discovered peripheral
@@ -288,22 +390,23 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     }
     
     func connectPeripheralSuccess(_ name: String?) {
-            // Device got connected
-            deviceConnectionCompletion?(.success(true))
-            deviceConnectionCompletion = nil // Reset the completion handler after use
-        }
+        // Device got connected
+        deviceConnectionCompletion?(.success(true))
+        deviceConnectionCompletion = nil // Reset the completion handler after use
+    }
     
     func disConnectPeripheral() {
-            // Assuming connectDevice is a boolean indicating connection status
-            let isDisconnected = RFIDBlutoothManager.share().connectDevice == false
-            
-            // Call the completion handler with the result of disconnection
-            if let completion = disconnectCompletion {
-                completion(.success(isDisconnected))
-                // Clear the completion handler after use
-                disconnectCompletion = nil
-            }
+        // Assuming connectDevice is a boolean indicating connection status
+        let isDisconnected = RFIDBlutoothManager.share().connectDevice == false
+        stopCheckingReaderConnectivity()
+        
+        // Call the completion handler with the result of disconnection
+        if let completion = disconnectCompletion {
+            completion(.success(isDisconnected))
+            // Clear the completion handler after use
+            disconnectCompletion = nil
         }
+    }
     
     func receiveGetGen2(with data: Data?) {}
     
@@ -315,26 +418,4 @@ class BluetoothInteractor: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     
     func receiveGetRFLinkWithData(_ data: Int) {}
     
-    // MARK: - CBCentralManagerDelegate Methods
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        // Handle different states here...
-    }
-    
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        
-    }
-    
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        // Handle successful connection...
-    }
-    
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        // Handle connection failure...
-    }
-    
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        // Handle disconnection...
-    }
-    
-    // Add other necessary delegate methods...
 }

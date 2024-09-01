@@ -38,6 +38,25 @@ import UIKit
                         result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
                     }
                 }
+            case "getConnectedPeripherals":
+                    self.getConnectedPeripherals { res in
+                    switch res {
+                    case .success(let device):
+                        result(device)
+//                        bluetoothChannel.invokeMethod("onDeviceDiscovered", arguments: device)
+                    case .failure(let error):
+                        result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
+                    }
+                }
+            case "stopBleScan":
+                    self.stopBleScan { res in
+                    switch res {
+                    case .success(let stopped):
+                        result(stopped)
+                    case .failure(let error):
+                        result(FlutterError(code: "UNAVAILABLE", message: "Failed to fetch peripherals: \(error.localizedDescription)", details: nil))
+                    }
+                }
             case "getPower":
                 self.getPower() { res in
                     switch  res {
@@ -228,6 +247,18 @@ import UIKit
         }
     }
     
+    private func stopBleScan(completion: @escaping (Result<Bool, Error>) ->Void) {
+        intractor.stopScanningBleDevices() { res in
+            switch res {
+            case .success(let stopped):
+                completion(.success(stopped))
+            case.failure:
+                let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to connect To device"])
+                completion(.failure(error))
+            }
+        }
+    }
+    
     private func getBatteryLevel(completion: @escaping (Result<Int, Error>) ->Void) {
         intractor.getBatteryLevel { res in
             switch res {
@@ -330,6 +361,18 @@ import UIKit
                 completion(.failure(error))
             }
         }
+    }
+    
+    private func getConnectedPeripherals(completion: @escaping (Result<[[String: Any]], Error>) -> Void) {
+        intractor.getConnectedPeripherals(completion: { res in
+            switch res {
+                case .success(let data):
+                    completion(.success(data))
+                case.failure:
+                    let error = NSError(domain: "UNAVAILABLE", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not able to set Power"])
+                    completion(.failure(error))
+            }
+        })
     }
     
     private func stopCheckingReaderConnectivity() {

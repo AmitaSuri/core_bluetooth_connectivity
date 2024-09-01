@@ -355,7 +355,10 @@ typedef NS_ENUM(NSInteger,BANK) {
 ///升级第四步：结束升级
 - (void)stopUpgrade;
 
+- (void)stopBluetoothScan;
 
 -(void) getBlutoothList;
+
+- (NSArray<CBPeripheral *> *)getBluetoothList;
 
 @end

@@ -42,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _loading = false;
   Map<String,String> device ={};
   StreamSubscription<Map<String, dynamic>>? _subscription;
-
+  List<Map<String,String?>> devices =[];
   // Map<String, String> stringMap = originalMap.map((key, value) {
   //   return MapEntry(key.toString(), value.toString());
   // });
@@ -103,16 +103,48 @@ class _MyHomePageState extends State<MyHomePage> {
       _loading = true;
     });
 
-    List<Map<String,String?>> devices =[];
+
     try {
       var result = await platform.invokeMethod('getAvailableDevices');
-
+      // var resultData = await platform.invokeMethod('getConnectedPeripherals');
+      // print(resultData);
       // platform.setMethodCallHandler(handleNativeMethod);
       device["name"]=result!["name"].toString();
       device["address"]=result["address"].toString();
 
       print("result:-$device");
       devices.add(device);
+    } on PlatformException catch (e) {
+      rethrow;
+      // devices = ["Failed to get available devices: '${e.message}'."];
+    }
+
+    setState(() {
+      _availableDevices = devices;
+      _loading = false;
+    });
+  }
+  Future<void> _getConnectedPeripherals() async {
+    setState(() {
+      _loading = true;
+    });
+
+
+    try {
+      List<dynamic> devicesList =[];
+       devicesList = await platform.invokeMethod('getConnectedPeripherals');
+
+      devices = devicesList.map((result){
+         device["name"]=result["name"].toString();
+         device["address"]=result["address"].toString();
+         return device;
+       }).toList();
+      // platform.setMethodCallHandler(handleNativeMethod);
+
+      print("deviceList:-$devicesList");
+      print("result:-$devices");
+      _getAvailableDevices();
+      // devices.add(device);
     } on PlatformException catch (e) {
       rethrow;
       // devices = ["Failed to get available devices: '${e.message}'."];
@@ -136,6 +168,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _setPower() async {
     try {
      bool value = await platform.invokeMethod('setPower',{"powerLevel":1});
+     print("$value");
+    } on PlatformException catch (e) {
+      print("Failed to make device discoverable: '${e.message}'.");
+    }
+  }
+
+  Future<void> _stopBleScan() async {
+    try {
+     bool value = await platform.invokeMethod("stopBleScan");
      print("$value");
     } on PlatformException catch (e) {
       print("Failed to make device discoverable: '${e.message}'.");
@@ -237,10 +278,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('Enable Bluetooth'),
               ),
               Text(_bluetoothStatus),
-              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _getAvailableDevices,
                 child: const Text('Get Available Devices'),
+              ),
+              ElevatedButton(
+                onPressed: _getConnectedPeripherals,
+                child: const Text('Get Connected Peripherals'),
+              ),
+              ElevatedButton(
+                onPressed: _stopBleScan,
+                child: const Text('stop BluetoothDevice Scan'),
               ),
               ElevatedButton(
                 onPressed: _getPower,

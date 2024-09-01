@@ -75,7 +75,11 @@ class BluetoothInteractor: NSObject, CBPeripheralDelegate, FatScaleBluetoothMana
         peripheralCompletion = completion
     }
     
-    
+    func stopScanningBleDevices(completion: @escaping (Result<Bool, Error>) -> Void) {
+        RFIDBlutoothManager.share().stopBluetoothScan()
+        completion(.success(true))
+    }
+
     // For getting the power level
     func getPowerLevel(completion: @escaping (Result<Int, Error>) -> Void) {
         // Store the completion handler to be called when the power level is received
@@ -375,8 +379,8 @@ class BluetoothInteractor: NSObject, CBPeripheralDelegate, FatScaleBluetoothMana
         if result == "0", let model = model {
             
             // Check if the peripheral has the required prefix and hasn't been added already
-            if let name = model.nameStr, name.hasPrefix("UR"),
-               !discoveredPeripherals.contains(where: { $0.peripheral.identifier.uuidString == model.peripheral.identifier.uuidString }) {
+//            if let name = model.nameStr, name.hasPrefix("UR"),
+             if !discoveredPeripherals.contains(where: { $0.peripheral.identifier.uuidString == model.peripheral.identifier.uuidString }) {
                 discoveredPeripherals.append(model)
                 
                 // Notify the completion handler for each newly discovered peripheral
@@ -406,6 +410,38 @@ class BluetoothInteractor: NSObject, CBPeripheralDelegate, FatScaleBluetoothMana
             // Clear the completion handler after use
             disconnectCompletion = nil
         }
+    }
+    
+    func getConnectedPeripherals(completion: @escaping (Result<[[String: Any]], Error>) -> Void) {
+            // Call the Objective-C method to get the list of peripherals
+        let connectedPeripherals = RFIDBlutoothManager.share().getBluetoothList()
+        
+            // Check if connectedPeripherals is not nil and is of the expected type
+        guard let peripherals = connectedPeripherals as? [CBPeripheral] else {
+            completion(.failure(NSError(domain: "InvalidDataError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve peripherals"])))
+            return
+        }
+        
+            // Convert each peripheral into a BLEModel and add it to the discoveredPeripherals array
+        var peripheralDataArray: [[String: Any]] = []
+        
+        for peripheral in peripherals {
+            let bleModel = BLEModel()
+            bleModel.nameStr = peripheral.name ?? "Unknown"
+            bleModel.addressStr = peripheral.identifier.uuidString
+            bleModel.peripheral = peripheral
+            
+            discoveredPeripherals.append(bleModel)
+            
+            let peripheralData: [String: Any] = [
+                "name": bleModel.nameStr,
+                "address": bleModel.addressStr
+            ]
+            peripheralDataArray.append(peripheralData)
+        }
+        
+            // Return the array of dictionaries through the completion handler
+        completion(.success(peripheralDataArray))
     }
     
     func receiveGetGen2(with data: Data?) {}
